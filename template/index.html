@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Team Picker Wheel — Simple App</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/Style/main.css">
+  <style>
+    :root{
+      --bg:#d7e2d8;
+      --card:#fff;
+      --muted:#8f9a8f;
+      --accent: #f6d9a8;
+      --radius: 12px;
+      --shadow: 0 2px 0 rgba(0,0,0,0.06);
+      --font: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    html,body{height:100%;margin:0;font-family:var(--font);background:#f4f7f4;color:#222;}
+    header{
+      background:var(--bg);
+      padding:18px 26px;
+      box-shadow: inset 0 -1px rgba(0,0,0,0.03);
+      display:flex;align-items:center;gap:18px;
+    }
+    header h1{margin:0;font-size:20px;letter-spacing:.3px;}
+    .wrap{display:grid;grid-template-columns: 340px 320px 1fr;gap:18px;padding:22px;align-items:start;}
+    .panel{
+      background:var(--card);
+      border-radius:12px;
+      padding:18px;
+      box-shadow: var(--shadow);
+      border:1px solid rgba(0,0,0,0.06);
+    }
+    .panel h2{margin:0 0 10px 0;font-size:16px;}
+    /* Inputs panel */
+    #inputs{min-height:560px;display:flex;flex-direction:column;}
+    .input-controls{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+    .input-controls input[type="text"]{flex:1;padding:8px;border-radius:6px;border:1px solid #ddd}
+    .input-controls button{padding:8px 10px;border-radius:6px;border:0;background:#f0f0f0;cursor:pointer}
+    .input-list{flex:1;min-height:380px;border-radius:8px;border:1px dashed #ddd;padding:8px;overflow:auto;background:linear-gradient(transparent, rgba(0,0,0,0.01))}
+    .input-item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;margin:6px 0;background:#fff;border:1px solid rgba(0,0,0,0.03)}
+    .input-item .name{flex:1}
+    .input-item button{margin-left:8px;border:0;background:transparent;cursor:pointer;color:#c44}
+    .small{font-size:13px;color:var(--muted);margin-top:8px}
+    .file-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+    .file-row input[type="file"]{display:block}
+    /* Controller */
+    #controller{min-height:420px;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;}
+    .control-row{display:flex;align-items:center;gap:8px;margin:8px 0}
+    .control-row label{width:160px;font-size:14px;color:#444}
+    .control-row input[type="number"]{width:80px;padding:6px;border-radius:6px;border:1px solid #ddd}
+    .radio-row{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+    .start-btn{margin-top:12px;padding:10px;border-radius:8px;border:0;background:var(--accent);cursor:pointer;font-weight:600}
+    .muted-btn{background:#eef6ee;color:#9aa;cursor:default;padding:10px;border-radius:8px;border:0;margin-top:12px}
+    /* Results */
+    #result-area{min-height:560px;display:flex;flex-direction:column;}
+    .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:10px}
+    .team-card{border-radius:12px;border:2px solid rgba(0,0,0,0.03);overflow:hidden;min-height:120px;background:#fff}
+    .team-header{padding:10px;font-weight:700;color:#fff}
+    .team-body{padding:12px;min-height:120px;background:linear-gradient(transparent, rgba(0,0,0,0.02))}
+    .team-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+    .team-item{padding:8px;border-radius:8px;background:#fff;border:1px solid rgba(0,0,0,0.04);display:flex;justify-content:space-between;align-items:center}
+    .team-item.rep{outline:2px solid gold}
+    .result-controls{display:flex;gap:8px;align-items:center;margin-top:10px}
+    .result-controls button{padding:8px;border-radius:8px;border:0;background:#eee;cursor:pointer}
+    /* colors */
+    .color-green .team-header{background:#0b6b2a}
+    .color-yellow .team-header{background:#ffb919;color:#222}
+    /* selection view */
+    #picks{margin-top:12px;padding:10px;background:#fff;border-radius:8px;border:1px solid rgba(0,0,0,0.03)}
+    .picked-item{display:inline-block;padding:6px 8px;margin:6px;border-radius:999px;background:#f7f7f7;border:1px solid rgba(0,0,0,0.04)}
+    footer{padding:18px;color:#777;font-size:13px;text-align:center}
+    @media(max-width:980px){
+      .wrap{grid-template-columns: 1fr; padding:12px;}
+      #controller{order:3}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Team Picker Wheel</h1>
+    <div style="color:#666">Randomize people into groups</div>
+  </header>
+  <button class="spin-btn"><a href="randoms.html">random picture</a></button>
+  <div class="wrap">
+    <!-- Inputs -->
+    <div id="inputs" class="panel">
+      <h2>1. INPUTS</h2>
+
+      <div class="input-controls">
+        <input id="nameInput" type="text" placeholder="Input here..." />
+        <button id="addBtn">＋</button>
+      </div>
+
+      <div class="file-row">
+        <input id="fileInput" type="file" accept=".txt,.csv" />
+        <button id="pasteBtn">Paste multiple</button>
+        <button id="clearInputsBtn">Clear all</button>
+      </div>
+
+      <div class="input-list" id="inputList" aria-live="polite"></div>
+
+      <div class="small">Tip: add one name at a time, paste multiple (newline-separated), or upload a text/CSV of names.</div>
+    </div>
+
+    <!-- Controller -->
+    <div id="controller" class="panel">
+      <h2>2. CONTROLLER</h2>
+
+      <div class="radio-row">
+        <label><input type="radio" name="dist" value="default" checked/> Default</label>
+        <label><input type="radio" name="dist" value="gender"/> Gender</label>
+        <label><input type="radio" name="dist" value="label"/> Label</label>
+      </div>
+
+      <div class="control-row">
+        <label>Pick quantity</label>
+        <input id="pickQuantity" type="number" min="0" value="0" />
+        <div style="color:var(--muted);font-size:13px;margin-left:6px" id="pickInfo"> / 0</div>
+      </div>
+
+      <div class="control-row">
+        <label>Number of groups</label>
+        <input id="numGroups" type="number" min="1" value="2" />
+      </div>
+
+      <div class="control-row">
+        <label>Max people / group</label>
+        <input id="maxPerGroup" type="number" min="1" placeholder="leave blank" />
+      </div>
+
+      <div class="control-row">
+        <label>Pick representatives?</label>
+        <input id="pickReps" type="checkbox" />
+      </div>
+
+      <button id="startBtn" class="start-btn">START</button>
+      <div id="spinner" class="spinner"></div>
+
+      <!-- <button id="startBtn" onclick="startDistribution()">Start Distribution</button> -->
+      <!-- <div id="spinner" style="display:none;">🔄 Distributing...</div> -->
+
+      <div style="height:18px"></div>
+      <button id="openGroupsBtn" class="muted-btn" disabled>Open Groups Board</button>
+      <div style="height:8px"></div>
+      <button id="removeAllBtn" class="muted-btn">Remove All Groups</button>
+    </div>
+
+    <!-- Result -->
+    <div id="result-area" class="panel">
+      <h2>3. RESULT</h2>
+
+      <div class="result-controls">
+        <button id="shuffleBtn">Shuffle & Redistribute</button>
+        <button id="exportBtn">Export CSV</button>
+        <button id="clearResultBtn">Clear Result</button>
+      </div>
+
+      <div id="picks" style="display:none">
+        <strong>Selected picks:</strong>
+        <div id="pickedList"></div>
+      </div>
+
+      <div class="teams" id="teamsGrid" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <footer>Built with ❤️ — open the HTML file in your browser</footer>
+
+<script>
+/* Simple Team Picker JS */
+const nameInput = document.getElementById('nameInput');
+const addBtn = document.getElementById('addBtn');
+const inputList = document.getElementById('inputList');
+const fileInput = document.getElementById('fileInput');
+const pasteBtn = document.getElementById('pasteBtn');
+const clearInputsBtn = document.getElementById('clearInputsBtn');
+
+const pickQuantity = document.getElementById('pickQuantity');
+const pickInfo = document.getElementById('pickInfo');
+const numGroups = document.getElementById('numGroups');
+const maxPerGroup = document.getElementById('maxPerGroup');
+const pickReps = document.getElementById('pickReps');
+const startBtn = document.getElementById('startBtn');
+
+const teamsGrid = document.getElementById('teamsGrid');
+const shuffleBtn = document.getElementById('shuffleBtn');
+const clearResultBtn = document.getElementById('clearResultBtn');
+const exportBtn = document.getElementById('exportBtn');
+const picksDiv = document.getElementById('picks');
+const pickedList = document.getElementById('pickedList');
+
+let names = []; // array of {id, name}
+let teams = []; // array of arrays
+
+function renderInputs(){
+  inputList.innerHTML = '';
+  names.forEach((n, idx) => {
+    const div = document.createElement('div');
+    div.className = 'input-item';
+    div.innerHTML = '<div class="name">'+escapeHtml(n.name)+'</div>';
+    const del = document.createElement('button');
+    del.textContent = '✕';
+    del.title = 'Remove';
+    del.addEventListener('click',()=>{ names.splice(idx,1); updatePickInfo(); renderInputs(); });
+    div.appendChild(del);
+    inputList.appendChild(div);
+  });
+  updatePickInfo();
+}
+
+function addName(raw){
+  const clean = raw.trim();
+  if(!clean) return;
+  names.push({id: cryptoId(), name: clean});
+  renderInputs();
+  nameInput.value='';
+  nameInput.focus();
+}
+
+addBtn.addEventListener('click', ()=> addName(nameInput.value));
+nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter'){ addName(nameInput.value); }});
+
+clearInputsBtn.addEventListener('click', ()=>{
+  if(!confirm('Clear all input names?')) return;
+  names=[];
+  renderInputs();
+});
+
+/* file import */
+fileInput.addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const text = ev.target.result;
+    loadNamesFromText(text);
+    fileInput.value = '';
+  }
+  reader.readAsText(f);
+});
+
+pasteBtn.addEventListener('click', ()=>{
+  const txt = prompt('Paste newline-separated names here:');
+  if(txt) loadNamesFromText(txt);
+});
+
+function loadNamesFromText(text){
+  // accept CSV or newline-separated; split by newline and comma if needed
+  const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  // If file is CSV single-line with commas, split too
+  let all=[];
+  lines.forEach(l=>{
+    if(l.includes(',')){
+      // try splitting by comma, but keep quoted simple
+      l.split(',').map(s=>s.trim()).forEach(x=>{ if(x) all.push(x) });
+    } else {
+      all.push(l);
+    }
+  });
+  all.forEach(name=> names.push({id: cryptoId(), name}));
+  renderInputs();
+}
+
+/* helper */
+function cryptoId(){ return Math.random().toString(36).slice(2,9); }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function updatePickInfo(){
+  pickInfo.textContent = ` / ${names.length}`;
+  // disable pickQuantity > total
+  if(parseInt(pickQuantity.value) > names.length) pickQuantity.value = names.length;
+}
+
+/* Start distribution */
+startBtn.addEventListener('click', startDistribution);
+shuffleBtn.addEventListener('click', ()=>startDistribution(true));
+clearResultBtn.addEventListener('click', clearResult);
+exportBtn.addEventListener('click', exportCSV);
+
+pickQuantity.addEventListener('input', ()=>{
+  if(parseInt(pickQuantity.value) > names.length) pickQuantity.value = names.length;
+});
+
+numGroups.addEventListener('input', ()=>{
+  if(parseInt(numGroups.value) < 1) numGroups.value = 1;
+});
+
+function startDistribution(shuffleOnly=false){
+  if(names.length === 0){ alert('Please add names first.'); return; }
+
+  // determine number of groups
+  let ngroups = parseInt(numGroups.value) || 0;
+  const maxGroup = parseInt(maxPerGroup.value) || 0;
+
+  if(!ngroups && !maxGroup){
+    alert('Set either number of groups or max people per group.');
+    return;
+  }
+  if(maxGroup && !ngroups){
+    ngroups = Math.ceil(names.length / maxGroup);
+    numGroups.value = ngroups;
+  }
+  if(ngroups < 1) ngroups = 1;
+
+  // create a pool of names
+  let pool = names.map(n=>({ ...n }));
+  // if shuffleOnly and teams exist, reuse previous? We'll just reshuffle using same group count
+  // shuffle pool
+  pool = shuffleArray(pool);
+
+  // create groups
+  teams = Array.from({length: ngroups}, ()=>[]);
+  // simple round-robin to distribute evenly
+  for(let i=0;i<pool.length;i++){
+    const idx = i % ngroups;
+    if(maxGroup > 0 && teams[idx].length >= maxGroup){
+      // find next with space
+      let placed=false;
+      for(let j=0;j<ngroups;j++){
+        if(teams[j].length < maxGroup){ teams[j].push(pool[i]); placed=true; break; }
+      }
+      if(!placed) teams[0].push(pool[i]);
+    } else {
+      teams[idx].push(pool[i]);
+    }
+  }
+
+  // if pick representatives -> pick one random per group
+  const doReps = pickReps.checked;
+  const pickQty = parseInt(pickQuantity.value) || 0;
+
+  renderTeams(teams, doReps);
+
+  // pick quantity (selected overall random selection)
+  if(pickQty > 0){
+    const selected = pickRandom(pool, pickQty);
+    showPicks(selected);
+  } else {
+    hidePicks();
+  }
+}
+
+/* Render result */
+function renderTeams(teamsArr, highlightReps=false){
+  teamsGrid.innerHTML = '';
+  teamsArr.forEach((g, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'team-card ' + ((idx%2===0) ? 'color-green' : 'color-yellow');
+    const header = document.createElement('div');
+    header.className = 'team-header';
+    header.textContent = `Team ${idx+1}`;
+    const body = document.createElement('div');
+    body.className = 'team-body';
+    const ul = document.createElement('ul');
+    ul.className = 'team-list';
+    g.forEach((p, pidx)=>{
+      const li = document.createElement('li');
+      li.className = 'team-item';
+      li.innerHTML = `<span>${escapeHtml(p.name)}</span><span style="font-size:12px;color:#777">${pidx+1}</span>`;
+      ul.appendChild(li);
+    });
+    body.appendChild(ul);
+    card.appendChild(header);
+    card.appendChild(body);
+    teamsGrid.appendChild(card);
+  });
+}
+
+/* Picks UI */
+function showPicks(arr){
+  picksDiv.style.display = 'block';
+  pickedList.innerHTML = '';
+  arr.forEach(item=>{
+    const d = document.createElement('div');
+    d.className = 'picked-item';
+    d.textContent = item.name;
+    pickedList.appendChild(d);
+  });
+}
+function hidePicks(){ picksDiv.style.display = 'none'; pickedList.innerHTML = ''; }
+
+function clearResult(){
+  teamsGrid.innerHTML = '';
+  teams = [];
+  hidePicks();
+}
+
+/* export CSV */
+function exportCSV(){
+  if(teams.length === 0){ alert('No groups to export.'); return; }
+  let rows = [];
+  teams.forEach((g, idx)=>{
+    g.forEach(p=>{
+      rows.push([`Team ${idx+1}`, p.name]);
+    });
+  });
+  const csv = rows.map(r => r.map(cell=> '"' + String(cell).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'teams.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* utilities */
+function shuffleArray(arr){
+  // Fisher-Yates
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function pickRandom(arr, k){
+  const shuffled = shuffleArray(arr);
+  return shuffled.slice(0,k);
+}
+
+/* initial */
+updatePickInfo();
+renderInputs();
+
+/* small extras: remove by doubleclick, etc. */
+inputList.addEventListener('dblclick', ()=>{ if(confirm('Clear all input names?')){ names=[]; renderInputs(); }});
+
+/* keep pickInfo updated when names change */
+setInterval(updatePickInfo, 500);
+</script>
+</body>
+</html>
