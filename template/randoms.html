@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Image Spin Wheel</title>
+<link rel="stylesheet" href="/Style/main.css">
+<style>
+  body {
+    background: #f3f5f4;
+    font-family: "Segoe UI", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+  }
+  canvas {
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .spin-btn {
+    margin-top: 30px;
+    padding: 14px 28px;
+    font-size: 20px;
+    border: none;
+    border-radius: 16px;
+    background: #f6d9a8;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .spin-btn:hover {
+    background: #f0c97d;
+  }
+  #winner-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: white;
+    border-radius: 20px;
+    padding: 30px 40px;
+    text-align: center;
+    box-shadow: 0 6px 40px rgba(0,0,0,0.35);
+    transition: transform 0.4s ease;
+    z-index: 100;
+  }
+  #winner-box.show {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  #winner-box img {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  #winner-name {
+    font-size: 28px;
+    margin-top: 12px;
+  }
+  #emoji-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 99;
+  }
+</style>
+</head>
+<body>
+<button class="spin-btn" ><a href="index.html">back</a></button>
+<div id="pointer"></div>
+<canvas id="wheel" width="480" height="480"></canvas>
+<button class="spin-btn" onclick="spinWheel()">🎲 Spin</button>
+
+<div id="winner-box">
+  <img id="winner-img" src="" alt="winner">
+  <h2 id="winner-name"></h2>
+</div>
+
+
+<div id="emoji-container"></div>
+
+<script>
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const center = canvas.width / 2;
+const radius = center - 15;
+
+const names = [
+  {name: "Molika", img: "/image/molika.png"},
+  {name: "Sievmey", img: "/image/sievmey.png"},
+  {name: "Liheang", img: "/image/Liheang.png"},
+  {name: "Chandy", img: "/image/chandy.png"},
+  {name: "Sreydeth", img: "/image/sreydeth.png"},
+  {name: "Sophea", img: "/image/sophea.png"},
+  {name: "SreyRoth", img: "/image/sreyroth.png"},
+  {name: "Sokseyla", img: "/image/sansokseyla.png"},
+  {name: "Borey", img: "/image/borey.png"},
+  {name: "Roeun", img: "/image/roeun.png"},
+  {name: "Lita", img: "/image/lita.png"},
+  {name: "Ya", img: "/image/ya.png"},
+  {name: "Chanthea", img: "/image/chanthea.png"},
+  {name: "Nita", img: "/image/nita.png"},
+  {name: "Pany", img: "/image/pany.png"},
+  {name: "Sreyleak", img: "/image/sreyleak.png"}
+];
+
+const numSegments = names.length;
+const arc = 2 * Math.PI / numSegments;
+let rotation = 0;
+
+// Load images
+const images = [];
+let loadedCount = 0;
+names.forEach((p, i) => {
+  const img = new Image();
+  img.src = p.img;
+  img.onload = () => {
+    loadedCount++;
+    if (loadedCount === names.length) drawWheel();
+  };
+  images.push(img);
+});
+function spinWheel() {
+  if (spinning) return;
+  spinning = true;
+
+  const duration = 5000; // longer for suspense
+  const start = performance.now();
+  const fullSpins = 8; // full 360° spins
+  const randomExtra = Math.random() * 2 * Math.PI; // final random angle
+
+  const initialRotation = rotation;
+
+  function animate(now) {
+    let elapsed = now - start;
+    let t = Math.min(elapsed / duration, 1);
+
+    // Ease in/out cubic
+    const easeInOut = t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    // Wobble effect at the end
+    const wobbleAmplitude = 0.15; // radians (~8.5°)
+    const wobble = t > 0.85 ? Math.sin((t - 0.85) * Math.PI * 10) * wobbleAmplitude : 0;
+
+    rotation = initialRotation + easeInOut * (fullSpins * 2 * Math.PI + randomExtra) + wobble;
+
+    drawWheel();
+
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      const normalized = (2 * Math.PI - rotation % (2 * Math.PI)) % (2 * Math.PI);
+      const index = Math.floor(normalized / arc) % numSegments;
+      showWinner(names[index]);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function drawWheel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < numSegments; i++) {
+    const start = i * arc + rotation;
+    const end = start + arc;
+
+    ctx.fillStyle = i % 2 === 0 ? '#0b6b2a' : '#ffb919';
+    ctx.beginPath();
+    ctx.moveTo(center, center);
+    ctx.arc(center, center, radius, start, end);
+    ctx.fill();
+    ctx.closePath();
+
+    const angle = start + arc / 2;
+    const img = images[i];
+    const imgSize = 60; // 🔥 Bigger image
+    const imgX = center + Math.cos(angle) * (radius * 0.55) - imgSize / 2;
+    const imgY = center + Math.sin(angle) * (radius * 0.55) - imgSize / 2;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(imgX + imgSize / 2, imgY + imgSize / 2, imgSize / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(img, imgX, imgY, imgSize, imgSize);
+    ctx.restore();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const textX = center + Math.cos(angle) * (radius * 0.85);
+    const textY = center + Math.sin(angle) * (radius * 0.85);
+    ctx.fillText(names[i].name, textX, textY);
+  }
+}
+
+let spinning = false;
+function spinWheel() {
+  if (spinning) return;
+  spinning = true;
+  let duration = 4000;
+  let start = null;
+  const finalRotation = Math.random() * 2 * Math.PI + 10 * 2 * Math.PI;
+
+  function animate(timestamp) {
+    if (!start) start = timestamp;
+    let progress = timestamp - start;
+    const t = Math.min(progress / duration, 1);
+    rotation = finalRotation * easeOutCubic(t);
+    drawWheel();
+    if (t < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      const normalized = (2 * Math.PI - rotation % (2 * Math.PI)) % (2 * Math.PI);
+      const index = Math.floor(normalized / arc) % numSegments;
+      showWinner(names[index]);
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+function easeOutCubic(t) { return (--t) * t * t + 1; }
+
+function showWinner(winner) {
+  const box = document.getElementById('winner-box');
+  document.getElementById('winner-img').src = winner.img;
+  document.getElementById('winner-name').textContent = `🎉 ${winner.name} 🎉`;
+  box.classList.add('show');
+  createEmojiRain();
+
+  setTimeout(() => {
+    box.classList.remove('show');
+    document.getElementById('emoji-container').innerHTML = "";
+  }, 4000);
+}
+
+function drawWheel() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < numSegments; i++) {
+    const start = i * arc + rotation;
+    const end = start + arc;
+
+    ctx.fillStyle = i % 2 === 0 ? '#0b6b2a' : '#ffb919';
+    ctx.beginPath();
+    ctx.moveTo(center, center);
+    ctx.arc(center, center, radius, start, end);
+    ctx.fill();
+    ctx.closePath();
+
+    // Only draw names, not images
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const angle = start + arc / 2;
+    const textX = center + Math.cos(angle) * (radius * 0.85);
+    const textY = center + Math.sin(angle) * (radius * 0.85);
+    ctx.fillText(names[i].name, textX, textY);
+  }
+}
+
+function createEmojiRain() {
+  const container = document.getElementById('emoji-container');
+  const emojis = ["🎉", "✨", "🥳", "❤️", "😍", "🎊", "💖", "🌟", "⚡️", "💫","💐", "🌈", "😎", "🤩", "🔥", "☄️", "🍃", "🎁", "💘", "🍬",];
+  
+  for (let i = 0; i < 40; i++) {
+    const emoji = document.createElement('div');
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    emoji.style.position = 'absolute';
+    emoji.style.left = Math.random() * 100 + '%';
+    emoji.style.bottom = '-50px'; // start below viewport
+    emoji.style.fontSize = 28 + Math.random() * 18 + 'px';
+    emoji.style.opacity = 0;
+    emoji.style.transform = `rotate(${Math.random() * 360}deg)`;
+
+    // random duration and delay
+    const duration = 2 + Math.random() * 2; // 2-4s
+    const delay = Math.random(); // 0-1s
+
+    emoji.style.animation = `shootUp ${duration}s ease-out ${delay}s forwards`;
+    container.appendChild(emoji);
+  }
+}
+
+// Add the shooting animation CSS
+const style = document.createElement('style');
+style.textContent = `
+@keyframes shootUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  80% { transform: translateY(-80vh) rotate(360deg); opacity: 1; }
+  100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+}`;
+document.head.appendChild(style);
+
+</script>
+
+</body>
+</html>
