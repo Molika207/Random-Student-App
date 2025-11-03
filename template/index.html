@@ -168,6 +168,16 @@
 
   <footer>Built with ❤️ — open the HTML file in your browser</footer>
 
+  <script>
+    document.getElementById("openGroupsBtn").addEventListener("click", function() {
+      alert("Opening Groups Board... (you can add your real action here)");
+    });
+
+    document.getElementById("removeAllBtn").addEventListener("click", function() {
+      document.getElementById("result-area").innerHTML = ""; // clear result area
+      alert("All groups removed!");
+    });
+  </script>
 <script>
 /* Simple Team Picker JS */
 const nameInput = document.getElementById('nameInput');

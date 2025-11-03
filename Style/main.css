@@ -206,6 +206,219 @@ hr {
   object-fit: cover;
   display: block;
   margin: 0 auto;
-  /* border-right: 6px solid gold; *//*GOLD border on right */
+  
  }
- 
+ /* --- Scrollable RESULT area --- */
+#result-area {
+  display: flex;
+  flex-direction: column;
+  height: 560px; /* keeps same visual size */
+  overflow: hidden; /* prevents stretching */
+}
+
+/* --- Show all names fully but scroll the whole RESULT panel --- */
+#result-area {
+  display: flex;
+  flex-direction: column;
+  max-height: 560px;     /* keep a fixed visible height */
+  overflow-y: auto;      /* scroll the whole result area */
+  scroll-behavior: smooth;
+  padding-right: 6px;    /* space for scrollbar */
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+/* keep team cards fully visible (no hidden items inside) */
+.teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+  overflow: visible; /* show all team members */
+}
+
+/* clean scrollbar styling */
+#result-area::-webkit-scrollbar {
+  width: 8px;
+}
+#result-area::-webkit-scrollbar-thumb {
+  background: #c5c5c5;
+  border-radius: 6px;
+}
+#result-area::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+
+/* 📱 RESPONSIVE DESIGN */
+
+/* Medium devices (tablets, < 992px) */
+@media (max-width: 992px) {
+  h1 {
+    font-size: 1.8em;
+    padding: 12px 25px;
+  }
+
+  .group {
+    width: 180px;
+  }
+
+  #groups {
+    gap: 14px;
+  }
+}
+
+/* Small devices (phones, < 768px) */
+@media (max-width: 768px) {
+  body {
+    padding: 25px 12px;
+  }
+
+  h1 {
+    font-size: 1.6em;
+    padding: 10px 18px;
+  }
+
+  form {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .group {
+    width: 90%;
+    max-width: 320px;
+  }
+
+  #groups {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #result {
+    font-size: 1.4em;
+    padding: 8px 16px;
+  }
+
+  button {
+    width: 90%;
+    max-width: 300px;
+    font-size: 0.95em;
+  }
+
+  .input-list {
+    min-height: 260px;
+    max-height: 260px;
+  }
+
+  #winner-box img {
+    width: 120px;
+    height: 120px;
+  }
+}
+
+/* Extra small devices (<480px) */
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.3em;
+  }
+
+  button {
+    font-size: 0.9em;
+    padding: 8px 14px;
+  }
+
+  .group {
+    width: 100%;
+    font-size: 0.9em;
+  }
+
+  #result {
+    font-size: 1.2em;
+  }
+
+  .input-item {
+    font-size: 13px;
+  }
+
+  #winner-box img {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* 📱 Perfect mobile view (≈390x844) */
+@media (max-width: 430px) {
+  body {
+    padding: 20px 10px;
+  }
+
+  h1 {
+    font-size: 1.3em;
+    padding: 10px 15px;
+    border-radius: 14px;
+  }
+
+  form {
+    width: 100%;
+    padding: 12px;
+  }
+
+  input[type="file"],
+  input[type="number"] {
+    width: 100%;
+    font-size: 0.9em;
+  }
+
+  button {
+    width: 100%;
+    max-width: 340px;
+    font-size: 0.9em;
+    padding: 10px 12px;
+    margin: 6px 0;
+  }
+
+  #result {
+    font-size: 1.2em;
+    padding: 8px 12px;
+    margin-top: 8px;
+  }
+
+  .group {
+    width: 100%;
+    max-width: 340px;
+    padding: 12px;
+    font-size: 0.9em;
+  }
+
+  #groups {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .input-list {
+    min-height: 240px;
+    max-height: 240px;
+  }
+
+  .input-item {
+    font-size: 13px;
+    padding: 3px 5px;
+  }
+
+  #winner-box img {
+    width: 100px;
+    height: 100px;
+  }
+
+  #pointer {
+    right: 10px;
+    border-left: 20px solid red;
+  }
+
+  #result-area {
+    max-height: 400px;
+    padding-right: 4px;
+  }
+}
